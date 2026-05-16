@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shreya Batra | Product Leader</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg: #07111f;
+      --bg-card: rgba(18, 29, 49, 0.75);
+      --primary: #5eead4;
+      --secondary: #8b5cf6;
+      --text: #f8fafc;
+      --muted: #9ca3af;
+      --border: rgba(255,255,255,0.08);
+      --glow: 0 0 35px rgba(94, 234, 212, 0.25);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background:
+        radial-gradient(circle at top left, rgba(94,234,212,0.15), transparent 25%),
+        radial-gradient(circle at bottom right, rgba(139,92,246,0.18), transparent 25%),
+        var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      overflow-x: hidden;
+      padding: 40px;
+    }
+
+    .grid-overlay {
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      z-index: -1;
+      mask-image: radial-gradient(circle at center, black 40%, transparent 90%);
+    }
+
+    .container {
+      max-width: 1300px;
+      margin: auto;
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      gap: 28px;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      backdrop-filter: blur(14px);
+      box-shadow: var(--glow);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      padding: 1px;
+      background: linear-gradient(135deg, rgba(94,234,212,0.5), rgba(139,92,246,0.25));
+      -webkit-mask:
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+    }
+
+    .sidebar {
+      padding: 32px;
+      position: sticky;
+      top: 24px;
+      height: fit-content;
+    }
+
+    .profile-ring {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      margin-bottom: 22px;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      padding: 3px;
+      animation: pulse 5s infinite;
+    }
+
+    .profile-inner {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: #09101d;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+      font-weight: 800;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 rgba(94,234,212,0.3); }
+      50% { box-shadow: 0 0 30px rgba(94,234,212,0.45); }
+      100% { box-shadow: 0 0 0 rgba(94,234,212,0.3); }
+    }
+
+    h1 {
+      font-size: 34px;
+      line-height: 1.1;
+      margin-bottom: 10px;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+
+    .title {
+      color: var(--primary);
+      font-weight: 600;
+      margin-bottom: 20px;
+    }
+
+    .bio {
+      color: var(--muted);
+      line-height: 1.7;
+      margin-bottom: 30px;
+      font-size: 14px;
+    }
+
+    .contact-item {
+      margin-bottom: 14px;
+      font-size: 14px;
+      color: #d1d5db;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .section-title {
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--primary);
+      margin: 30px 0 18px;
+      font-weight: 700;
+    }
+
+    .skill {
+      margin-bottom: 16px;
+    }
+
+    .skill-head {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-size: 13px;
+    }
+
+    .skill-bar {
+      height: 10px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .skill-fill {
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--primary), var(--secondary));
+      width: 0;
+      transition: width 1.5s ease;
+    }
+
+    .main {
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+
+    .hero {
+      padding: 40px;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 18px;
+      border-radius: 999px;
+      background: rgba(94,234,212,0.08);
+      color: var(--primary);
+      font-size: 13px;
+      margin-bottom: 20px;
+      border: 1px solid rgba(94,234,212,0.15);
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 26px;
+      align-items: center;
+    }
+
+    .headline {
+      font-size: 54px;
+      line-height: 1.05;
+      font-family: 'Space Grotesk', sans-serif;
+      margin-bottom: 18px;
+    }
+
+    .headline span {
+      background: linear-gradient(90deg, var(--primary), #ffffff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-text {
+      color: var(--muted);
+      line-height: 1.8;
+      font-size: 15px;
+      max-width: 700px;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 18px;
+    }
+
+    .stat-box {
+      padding: 24px;
+      border-radius: 22px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .stat-number {
+      font-size: 34px;
+      font-weight: 800;
+      margin-bottom: 8px;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+
+    .stat-label {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .content-card {
+      padding: 34px;
+    }
+
+    .timeline {
+      position: relative;
+      padding-left: 30px;
+    }
+
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 6px;
+      top: 0;
+      width: 2px;
+      height: 100%;
+      background: linear-gradient(var(--primary), transparent);
+    }
+
+    .timeline-item {
+      position: relative;
+      margin-bottom: 34px;
+    }
+
+    .timeline-item::before {
+      content: '';
+      position: absolute;
+      left: -29px;
+      top: 7px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--primary);
+      box-shadow: 0 0 15px rgba(94,234,212,0.5);
+    }
+
+    .job-title {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .company {
+      color: var(--primary);
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .duration {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 12px;
+    }
+
+    .timeline-item ul {
+      padding-left: 18px;
+      color: #d1d5db;
+      line-height: 1.8;
+      font-size: 14px;
+    }
+
+    .pill-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .pill {
+      padding: 12px 16px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      font-size: 13px;
+      transition: all 0.3s ease;
+    }
+
+    .pill:hover {
+      transform: translateY(-3px);
+      background: rgba(94,234,212,0.08);
+    }
+
+    .footer {
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+      padding-bottom: 20px;
+    }
+
+    @media (max-width: 1100px) {
+      .container {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        position: relative;
+        top: 0;
+      }
+
+      .hero-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 18px;
+      }
+
+      .headline {
+        font-size: 40px;
+      }
+
+      .stats {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="grid-overlay"></div>
+
+  <div class="container">
+
+    <aside class="card sidebar">
+      <div class="profile-ring">
+        <div class="profile-inner">SB</div>
+      </div>
+
+      <h1>Shreya Batra</h1>
+      <div class="title">Lead Product Manager • AI & Travel Tech Strategist</div>
+
+      <p class="bio">
+        Product leader with 10+ years of experience building digital products across travel, e-commerce, logistics, and media. Passionate about AI-powered systems, scalable operations, and creating high-impact customer experiences.
+      </p>
+
+      <div class="contact-item">📍 Delhi, India</div>
+      <div class="contact-item">💼 Product Strategy & Innovation</div>
+      <div class="contact-item">🚀 Founder Mindset + Execution Focus</div>
+
+      <div class="section-title">Core Expertise</div>
+
+      <div class="skill">
+        <div class="skill-head">
+          <span>Product Management</span>
+          <span>96%</span>
+        </div>
+        <div class="skill-bar"><div class="skill-fill" data-width="96%"></div></div>
+      </div>
+
+      <div class="skill">
+        <div class="skill-head">
+          <span>AI Product Thinking</span>
+          <span>92%</span>
+        </div>
+        <div class="skill-bar"><div class="skill-fill" data-width="92%"></div></div>
+      </div>
+
+      <div class="skill">
+        <div class="skill-head">
+          <span>Growth & Monetization</span>
+          <span>89%</span>
+        </div>
+        <div class="skill-bar"><div class="skill-fill" data-width="89%"></div></div>
+      </div>
+
+      <div class="skill">
+        <div class="skill-head">
+          <span>CRM & Operations</span>
+          <span>94%</span>
+        </div>
+        <div class="skill-bar"><div class="skill-fill" data-width="94%"></div></div>
+      </div>
+
+      <div class="skill">
+        <div class="skill-head">
+          <span>UX & Design Systems</span>
+          <span>84%</span>
+        </div>
+        <div class="skill-bar"><div class="skill-fill" data-width="84%"></div></div>
+      </div>
+
+      <div class="section-title">Tools & Platforms</div>
+      <div class="pill-wrap">
+        <div class="pill">Figma</div>
+        <div class="pill">Visily</div>
+        <div class="pill">Mixpanel</div>
+        <div class="pill">GA4</div>
+        <div class="pill">Jira</div>
+        <div class="pill">AI Workflows</div>
+        <div class="pill">CRM Systems</div>
+      </div>
+    </aside>
+
+    <main class="main">
+
+      <section class="card hero">
+        <div class="tag">⚡ Building intelligent products for travel, mobility & logistics</div>
+
+        <div class="hero-grid">
+          <div>
+            <div class="headline">
+              Designing the <span>future of digital travel experiences</span>
+            </div>
+
+            <p class="hero-text">
+              Led the development of 11+ digital products, launched OurBus India, and built revenue-generating systems across charter operations, add-ons, payment experiences, CRM workflows, and AI-led product ecosystems. Combines deep product thinking with operational execution and growth-oriented innovation.
+            </p>
+          </div>
+
+          <div class="stats">
+            <div class="stat-box">
+              <div class="stat-number">10+</div>
+              <div class="stat-label">Years of product, analytics & growth experience</div>
+            </div>
+
+            <div class="stat-box">
+              <div class="stat-number">11</div>
+              <div class="stat-label">Digital products launched & scaled</div>
+            </div>
+
+            <div class="stat-box">
+              <div class="stat-number">5 yrs</div>
+              <div class="stat-label">Leadership at OurBus across multiple verticals</div>
+            </div>
+
+            <div class="stat-box">
+              <div class="stat-number">AI</div>
+              <div class="stat-label">Focused on automation, personalization & intelligent systems</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card content-card">
+        <div class="section-title">Professional Experience</div>
+
+        <div class="timeline">
+
+          <div class="timeline-item">
+            <div class="job-title">Lead Product Manager</div>
+            <div class="company">OurBus</div>
+            <div class="duration">2019 – Present</div>
+
+            <ul>
+              <li>Led product strategy and execution for intercity travel, charter operations, CRM systems, and AI-powered customer workflows.</li>
+              <li>Launched and scaled OurBus India while managing cross-functional engineering, business, operations, and design teams.</li>
+              <li>Built monetization features including Add-Ons, Door 2 Door services, and gift card systems.</li>
+              <li>Designed scalable backend workflows and automated operational systems improving efficiency across departments.</li>
+              <li>Created product ecosystems for agents, charter sales, procurement operations, and conversion tracking.</li>
+              <li>Explored AI-driven travel planning, cart systems, personalization, and intelligent booking experiences.</li>
+            </ul>
+          </div>
+
+          <div class="timeline-item">
+            <div class="job-title">Assistant Product Manager → Product Lead</div>
+            <div class="company">OurBus Growth Journey</div>
+            <div class="duration">Growth Trajectory</div>
+
+            <ul>
+              <li>Progressed from Assistant Product Manager to Lead Product Manager through high-impact execution and ownership.</li>
+              <li>Worked closely with engineering and operations to bridge business requirements with scalable technology systems.</li>
+              <li>Focused heavily on user experience optimization, funnel improvement, and operational transparency.</li>
+            </ul>
+          </div>
+
+        </div>
+      </section>
+
+      <section class="card content-card">
+        <div class="section-title">Education</div>
+
+        <div class="timeline-item">
+          <div class="job-title">B.Tech in Computer Science</div>
+          <div class="company">Engineering Foundation</div>
+        </div>
+
+        <div class="timeline-item" style="margin-top: 28px;">
+          <div class="job-title">PG Diploma in Product Management</div>
+          <div class="company">Product Strategy & Business Specialization</div>
+        </div>
+      </section>
+
+      <section class="card content-card">
+        <div class="section-title">Leadership & Entrepreneurship</div>
+
+        <div class="pill-wrap">
+          <div class="pill">BNI Delhi Power Team Leader</div>
+          <div class="pill">TruckBulls Brand Growth</div>
+          <div class="pill">Travel Tech Innovation</div>
+          <div class="pill">AI Product Systems</div>
+          <div class="pill">Cross-functional Leadership</div>
+          <div class="pill">Business Operations</div>
+          <div class="pill">Revenue Strategy</div>
+          <div class="pill">CRM Transformation</div>
+        </div>
+      </section>
+
+      <div class="footer">
+        Crafted with futuristic product thinking • Designed for modern leadership roles
+      </div>
+
+    </main>
+  </div>
+
+  <script>
+    const skillBars = document.querySelectorAll('.skill-fill');
+
+    const animateSkills = () => {
+      skillBars.forEach(bar => {
+        const width = bar.getAttribute('data-width');
+        bar.style.width = width;
+      });
+    };
+
+    window.addEventListener('load', animateSkills);
+
+    document.addEventListener('mousemove', (e) => {
+      const cards = document.querySelectorAll('.card');
+
+      cards.forEach(card => {
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        card.style.background = `
+          radial-gradient(circle at ${x}px ${y}px, rgba(94,234,212,0.08), transparent 28%),
+          rgba(18, 29, 49, 0.75)
+        `;
+      });
+    });
+  </script>
+</body>
+</html>

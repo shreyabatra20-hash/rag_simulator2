@@ -1,43 +1,271 @@
-import { useState, useCallback, useRef } from "react";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Apollo MedRAG — AI Medical Record Assistant</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--red:#E2001A;--red-dark:#B8001A;--navy:#003366;--navy-light:#004080;--blue:#0066CC;--lb:#E8F2FC;--lg:#F5F6F8;--br:#D8DCE4;--tx:#1A1D23;--mu:#6B7280;--ok:#00875A;--okb:#E3F5EE}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Source Sans 3',sans-serif;background:#F0F2F5;color:var(--tx);min-height:100vh}
+/* HEADER */
+.hdr{background:var(--navy);height:60px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;box-shadow:0 2px 8px rgba(0,0,0,.25);position:sticky;top:0;z-index:100}
+.logo{display:flex;align-items:center;gap:12px}
+.logo-ic{width:38px;height:38px;border-radius:50%;background:var(--red);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.brand{font-size:18px;font-weight:700;color:#fff}
+.sub{font-size:10px;color:#A8BDD4;letter-spacing:1px;text-transform:uppercase}
+.hdr-badge{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#C8DAEA;font-size:11px;padding:4px 14px;border-radius:20px}
+/* HERO */
+.hero{background:linear-gradient(135deg,var(--navy) 0%,var(--navy-light) 100%);padding:20px 24px 0}
+.hero-inner{display:flex;align-items:flex-end;justify-content:space-between;gap:16px}
+.hero-text{color:#fff;padding-bottom:20px}
+.hero-text h1{font-size:22px;font-weight:700;margin-bottom:5px}
+.hero-text p{font-size:13px;color:#A8C8E8;max-width:500px;line-height:1.6}
+.steps-row{display:flex;background:rgba(255,255,255,.1);border-radius:8px 8px 0 0;overflow:hidden;border:1px solid rgba(255,255,255,.15);border-bottom:none}
+.sp{padding:8px 16px;color:#A8C8E8;font-size:12px;display:flex;align-items:center;gap:6px;border-right:1px solid rgba(255,255,255,.1)}
+.sp:last-child{border-right:none}
+.sp.active{background:rgba(255,255,255,.15);color:#fff}
+.sn{width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0}
+.sp.active .sn{background:var(--red)}
+/* SETUP BANNER */
+.setup-banner{background:#FFF3CD;border-bottom:2px solid #FBBF24;padding:14px 24px;font-size:13px;color:#78350F}
+.setup-banner strong{display:block;font-size:14px;margin-bottom:6px;color:#92400E}
+.setup-banner code{background:#FDE68A;padding:3px 8px;border-radius:4px;font-family:monospace;font-size:12px}
+/* MAIN */
+.main{display:grid;grid-template-columns:400px 1fr;gap:20px;padding:20px 24px 48px;max-width:1280px;margin:0 auto}
+/* PANELS */
+.panel{background:#fff;border-radius:12px;border:1px solid var(--br);overflow:hidden;margin-bottom:18px}
+.panel:last-child{margin-bottom:0}
+.ph{background:var(--lg);border-bottom:1px solid var(--br);padding:12px 18px;display:flex;align-items:center;justify-content:space-between}
+.pt{font-size:11px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.6px;display:flex;align-items:center;gap:7px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--red)}
+.pb{padding:18px}
+/* INPUTS */
+textarea,input[type=text],input[type=password]{width:100%;border:1px solid var(--br);border-radius:8px;padding:11px 13px;font-family:inherit;font-size:13px;line-height:1.7;color:var(--tx);outline:none;background:#FAFBFC;transition:border-color .2s}
+textarea:focus,input:focus{border-color:var(--blue);background:#fff}
+textarea{resize:vertical}
+#recordInput{min-height:200px}
+#queryInput{min-height:50px;resize:none;font-size:14px}
+.rl{font-size:11px;font-weight:600;color:var(--mu);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;display:flex;justify-content:space-between}
+.rl span{color:var(--navy);font-size:12px;font-weight:700}
+input[type=range]{width:100%;accent-color:var(--red);cursor:pointer}
+.cg{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:14px}
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:8px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .18s}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.bp{background:var(--red);color:#fff}
+.bp:hover:not(:disabled){background:var(--red-dark);transform:translateY(-1px);box-shadow:0 4px 12px rgba(226,0,26,.3)}
+.bs{background:var(--lb);color:var(--navy);border:1px solid #B8D4F0}
+.bs:hover{background:#D0E6F8}
+.bsm{padding:5px 12px;font-size:12px}
+.br{display:flex;gap:10px;margin-top:14px}
+/* STATS */
+.sg{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:14px}
+.sc{background:var(--lg);border:1px solid var(--br);border-radius:8px;padding:10px 12px;text-align:center}
+.sv{font-size:22px;font-weight:700;color:var(--navy)}
+.sl{font-size:10px;color:var(--mu);margin-top:2px}
+/* CHUNKS */
+.cl{max-height:340px;overflow-y:auto;padding-right:4px}
+.cl::-webkit-scrollbar{width:4px}
+.cl::-webkit-scrollbar-thumb{background:var(--br);border-radius:2px}
+.ci{border-radius:8px;border-left:3px solid;padding:10px 13px;margin-bottom:8px;font-size:12px;line-height:1.65;transition:outline .2s}
+.ci.hl{outline:2px solid var(--blue)}
+.cm{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.cid{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.ctk{font-size:10px;color:var(--mu)}
+.sbw{display:flex;align-items:center;gap:8px;margin-top:5px}
+.sbt{flex:1;height:4px;background:rgba(0,0,0,.1);border-radius:2px;overflow:hidden}
+.sbf{height:100%;border-radius:2px;transition:width .5s}
+.sbs{font-size:10px;font-weight:700;min-width:30px;text-align:right}
+/* PIPELINE */
+.pipeline{display:flex;background:#fff;border:1px solid var(--br);border-radius:10px;overflow:hidden;margin-bottom:18px}
+.ps{flex:1;padding:10px 6px;text-align:center;border-right:1px solid var(--br);color:var(--mu);transition:all .3s}
+.ps:last-child{border-right:none}
+.ps.active{background:var(--lb);color:var(--navy)}
+.ps.done{background:var(--okb);color:var(--ok)}
+.pi{font-size:18px}
+.pl{font-size:10px;font-weight:600;margin-top:3px;letter-spacing:.3px}
+/* QUERY */
+.qw{display:flex;gap:10px;align-items:flex-start}
+.eq{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.eq-btn{background:var(--lb);color:var(--navy);border:1px solid #B8D4F0;border-radius:20px;padding:4px 12px;font-size:11px;cursor:pointer;font-family:inherit}
+.eq-btn:hover{background:#C8DCEF}
+/* ANSWER */
+.ab{background:linear-gradient(135deg,#EBF5FF,#F5F0FF);border:1px solid #C0D8F5;border-left:4px solid var(--blue);border-radius:10px;padding:16px 18px;margin-top:14px}
+.al{font-size:10px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.6px;margin-bottom:7px}
+.at{font-size:14px;line-height:1.8;color:var(--tx);white-space:pre-wrap}
+.rd{font-size:11px;font-weight:600;color:var(--mu);text-transform:uppercase;letter-spacing:.5px;display:flex;align-items:center;gap:8px;margin:14px 0 10px}
+.rd::after{content:'';flex:1;height:1px;background:var(--br)}
+.ri{border-radius:8px;border:1px solid;padding:12px 14px;margin-bottom:8px;font-size:12.5px;line-height:1.65}
+.rh{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.rb{font-size:10px;font-weight:700;letter-spacing:.5px;padding:2px 8px;border-radius:4px}
+.rs{font-size:11px;color:var(--mu)}
+/* LOADING */
+.loading{text-align:center;padding:32px 0}
+.dots{display:flex;justify-content:center;gap:6px;margin-bottom:10px}
+.db{width:8px;height:8px;border-radius:50%;background:var(--blue);animation:bounce 1.2s infinite ease-in-out both}
+.db:nth-child(1){animation-delay:-.32s}.db:nth-child(2){animation-delay:-.16s}
+@keyframes bounce{0%,80%,100%{transform:scale(0);opacity:.4}40%{transform:scale(1);opacity:1}}
+/* EMPTY */
+.empty{text-align:center;padding:48px 20px;color:var(--mu);font-size:13px}
+/* NOTICE */
+.notice{background:#FFF8E1;border:1px solid #FFE082;border-radius:8px;padding:9px 14px;font-size:12px;color:#5D4037;display:flex;gap:8px;margin-bottom:14px;align-items:flex-start}
+/* API KEY */
+.ak-sec{background:#EFF6FF;border:1px solid #BFDBFE;border-radius:8px;padding:14px 16px;margin-bottom:16px}
+.ak-sec label{font-size:11px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:7px}
+.ak-sec input{font-family:monospace;font-size:13px;letter-spacing:.5px}
+.ak-note{font-size:11px;color:#3B82F6;margin-top:6px}
+.ak-status{font-size:11px;margin-top:6px;font-weight:600}
+.ak-status.ok{color:var(--ok)}.ak-status.err{color:var(--red)}
+@media(max-width:860px){.main{grid-template-columns:1fr}.steps-row{display:none}}
+</style>
+</head>
+<body>
 
-// ── CONSTANTS ──────────────────────────────────────────────────────────
-const APOLLO_RED = "#E2001A";
-const NAVY = "#003366";
-const NAVY_LIGHT = "#004080";
-const BLUE = "#0066CC";
-const LIGHT_BLUE = "#E8F2FC";
-const LIGHT_GRAY = "#F5F6F8";
-const BORDER = "#D8DCE4";
-const TEXT = "#1A1D23";
-const MUTED = "#6B7280";
-const SUCCESS = "#00875A";
+<!-- HEADER -->
+<div class="hdr">
+  <div class="logo">
+    <div class="logo-ic">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
+      </svg>
+    </div>
+    <div><div class="brand">Apollo MedRAG</div><div class="sub">AI Medical Intelligence</div></div>
+  </div>
+  <div class="hdr-badge">RAG Simulator</div>
+</div>
 
-const CHUNK_COLORS = [
-  { bg: "#E8F2FC", border: "#6BAED6", text: "#1A4A7A" },
-  { bg: "#F0EBF8", border: "#9E7BC4", text: "#4A1A80" },
-  { bg: "#E8F6EE", border: "#5CB87A", text: "#1A5A30" },
-  { bg: "#FFF8E8", border: "#E8A820", text: "#6A4200" },
-  { bg: "#FDE8E8", border: "#E87070", text: "#7A1A1A" },
-];
+<!-- SETUP BANNER -->
+<div class="setup-banner" id="setupBanner">
+  <strong>⚙️ One-time setup to enable AI answers</strong>
+  To call the Anthropic API from a local HTML file, run this one command in your terminal, then open <code>http://localhost:8080/apollo-rag-simulator.html</code> instead of the file directly:<br><br>
+  <code>python3 -m http.server 8080</code> &nbsp;(run from the folder containing this HTML file)<br><br>
+  <span style="font-size:12px;color:#92400E">Or on Windows: <code>python -m http.server 8080</code> &nbsp;|&nbsp; Or just drag the file into VS Code Live Server.</span>
+</div>
 
-const STOPWORDS = new Set([
-  "the","and","for","are","was","has","have","been","this","that","with",
-  "not","from","but","they","their","which","also","when","all","its","will",
-  "can","she","his","her","who","did","how","what","more","than","some","any",
-  "our","per","your","about","into","each","over","very","may","after","said",
-  "such","had","other","most","only","take","than","patient","history","noted"
-]);
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-text">
+      <h1>Medical Record RAG Simulator</h1>
+      <p>Paste patient records, chunk & index them, then query using semantic similarity to retrieve relevant context for AI-generated answers.</p>
+    </div>
+    <div class="steps-row">
+      <div class="sp active" id="pill1"><div class="sn">1</div>Ingest Records</div>
+      <div class="sp" id="pill2"><div class="sn">2</div>Chunk & Index</div>
+      <div class="sp" id="pill3"><div class="sn">3</div>Query & Retrieve</div>
+      <div class="sp" id="pill4"><div class="sn">4</div>Generate Answer</div>
+    </div>
+  </div>
+</div>
 
-const EXAMPLES = [
-  "What medications is the patient currently taking?",
-  "What is the patient's cardiac history?",
-  "Does the patient have diabetes? What are the recent blood sugar levels?",
-  "What are the latest investigation results?",
-  "What is the treatment plan?",
-  "Does the patient have any allergies?",
-];
+<div class="main">
+  <!-- LEFT -->
+  <div>
+    <!-- API KEY -->
+    <div class="panel">
+      <div class="ph"><div class="pt"><div class="dot"></div>Anthropic API Key</div><span id="connStatus" class="ak-status"></span></div>
+      <div class="pb">
+        <div class="ak-sec">
+          <label>Your Anthropic API Key</label>
+          <input type="password" id="apiKey" placeholder="sk-ant-api03-..." oninput="onKeyChange()"/>
+          <div class="ak-note">🔒 Used only in your browser — never stored or sent to any third party.</div>
+        </div>
+      </div>
+    </div>
 
-const SAMPLE = `PATIENT MEDICAL RECORD
+    <!-- RECORDS INPUT -->
+    <div class="panel">
+      <div class="ph">
+        <div class="pt"><div class="dot"></div>Medical Records Input</div>
+        <button class="btn bs bsm" onclick="loadSample()">Load Sample</button>
+      </div>
+      <div class="pb">
+        <div class="notice"><span>⚠️</span><span>Simulation only. Do not enter real patient data. Sample records are fictional.</span></div>
+        <textarea id="recordInput" placeholder="Paste medical records here...&#10;&#10;Example:&#10;Patient: John Doe | DOB: 1978-03-14&#10;Chief Complaint: Chest pain, shortness of breath..."></textarea>
+        <div class="cg">
+          <div>
+            <div class="rl">Chunk Size (tokens)<span id="csVal">250</span></div>
+            <input type="range" id="chunkSize" min="100" max="500" step="25" value="250" oninput="document.getElementById('csVal').textContent=this.value">
+          </div>
+          <div>
+            <div class="rl">Overlap (tokens)<span id="ovVal">30</span></div>
+            <input type="range" id="overlapSize" min="0" max="100" step="10" value="30" oninput="document.getElementById('ovVal').textContent=this.value">
+          </div>
+        </div>
+        <div class="br">
+          <button class="btn bp" onclick="processRecords()">⚡ Process & Chunk</button>
+          <button class="btn bs" onclick="clearAll()">Clear All</button>
+        </div>
+        <div class="sg" id="statGrid" style="display:none">
+          <div class="sc"><div class="sv" id="sChunks">0</div><div class="sl">Chunks</div></div>
+          <div class="sc"><div class="sv" id="sTokens">0</div><div class="sl">Total Tokens</div></div>
+          <div class="sc"><div class="sv" id="sAvg">0</div><div class="sl">Avg/Chunk</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHUNKS -->
+    <div class="panel" id="chunksPanel" style="display:none">
+      <div class="ph">
+        <div class="pt"><div class="dot"></div>Indexed Chunks</div>
+        <span style="font-size:11px;color:var(--mu)" id="chunksCount"></span>
+      </div>
+      <div class="pb" style="padding:14px">
+        <div class="cl" id="chunksList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT -->
+  <div>
+    <div class="pipeline">
+      <div class="ps" id="p1"><div class="pi">📄</div><div class="pl">Ingest</div></div>
+      <div class="ps" id="p2"><div class="pi">✂️</div><div class="pl">Chunk</div></div>
+      <div class="ps" id="p3"><div class="pi">🔢</div><div class="pl">Embed</div></div>
+      <div class="ps" id="p4"><div class="pi">🔍</div><div class="pl">Retrieve</div></div>
+      <div class="ps" id="p5"><div class="pi">🤖</div><div class="pl">Generate</div></div>
+    </div>
+
+    <div class="panel">
+      <div class="ph">
+        <div class="pt"><div class="dot"></div>Query the Records</div>
+        <span style="font-size:11px;color:var(--mu)">TF-IDF + Claude</span>
+      </div>
+      <div class="pb">
+        <div class="qw">
+          <textarea id="queryInput" rows="2" placeholder="Ask a question about the patient's medical history…&#10;e.g. What medications is the patient on?"></textarea>
+          <button class="btn bp" id="askBtn" onclick="runQuery()" style="flex-shrink:0;align-self:stretch">🔍 Ask</button>
+        </div>
+        <div class="eq" id="exQs"></div>
+
+        <div id="loadingDiv" style="display:none" class="loading">
+          <div class="dots"><div class="db"></div><div class="db"></div><div class="db"></div></div>
+          <p style="font-size:13px;color:var(--mu)" id="loadMsg">Processing…</p>
+        </div>
+
+        <div id="emptyDiv" class="empty">
+          <div style="font-size:48px;opacity:.2;margin-bottom:10px">💬</div>
+          Process records first, then ask a question to see AI-retrieved answers.
+        </div>
+
+        <div id="answerDiv" style="display:none">
+          <div class="ab">
+            <div class="al">🤖 AI-Generated Answer</div>
+            <div class="at" id="answerText"></div>
+          </div>
+          <div class="rd">Retrieved Context Chunks</div>
+          <div id="retList"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── SAMPLE DATA ───────────────────────────────────────────────────────
+const SAMPLE=`PATIENT MEDICAL RECORD
 ═══════════════════════════════════════════
 
 PERSONAL INFORMATION
@@ -50,11 +278,11 @@ Primary Physician: Dr. Priya Nair (Cardiology)
 CHIEF COMPLAINTS
 - Recurring chest tightness and shortness of breath on exertion (3 months duration)
 - Fatigue, particularly in afternoon hours
-- Occasional palpitations (approx. 2–3 episodes/week)
+- Occasional palpitations (approx. 2-3 episodes/week)
 - Mild swelling in bilateral ankles since January 2024
 
 MEDICAL HISTORY
-Diagnosed with Type 2 Diabetes Mellitus in 2015. Initially managed with lifestyle modifications; started on Metformin in 2016. HbA1c has ranged between 7.2–8.4% over the last 3 years.
+Diagnosed with Type 2 Diabetes Mellitus in 2015. Initially managed with lifestyle modifications; started on Metformin in 2016. HbA1c has ranged between 7.2-8.4% over the last 3 years.
 
 Hypertension diagnosed 2017. Currently on antihypertensive therapy. Blood pressure has been difficult to control; average readings 145/90 mmHg over the past 6 months.
 
@@ -66,26 +294,26 @@ No prior surgeries. No known drug allergies.
 
 FAMILY HISTORY
 Father: Died of myocardial infarction at age 62.
-Mother: Type 2 Diabetes, Hypertension — alive, age 72.
+Mother: Type 2 Diabetes, Hypertension - alive, age 72.
 One sibling: Dyslipidaemia.
 
 CURRENT MEDICATIONS
-1. Metformin 1000mg — BD (with meals)
-2. Amlodipine 5mg — OD (morning)
-3. Telmisartan 40mg — OD (morning)
-4. Atorvastatin 40mg — OD (night)
-5. Aspirin 75mg — OD (morning, after food)
-6. Clopidogrel 75mg — OD (morning)
-7. Bisoprolol 2.5mg — OD (morning)
-8. Pantoprazole 40mg — OD (before breakfast)
+1. Metformin 1000mg - BD (with meals)
+2. Amlodipine 5mg - OD (morning)
+3. Telmisartan 40mg - OD (morning)
+4. Atorvastatin 40mg - OD (night)
+5. Aspirin 75mg - OD (morning, after food)
+6. Clopidogrel 75mg - OD (morning)
+7. Bisoprolol 2.5mg - OD (morning)
+8. Pantoprazole 40mg - OD (before breakfast)
 
-INVESTIGATIONS — Last 6 Months
+INVESTIGATIONS - Last 6 Months
 ECG (March 2024): Normal sinus rhythm. Old inferior T-wave changes consistent with prior NSTEMI. No new ST changes.
 Echo (February 2024): EF 48%, mild LV diastolic dysfunction Grade I. No wall motion abnormalities.
 HbA1c (January 2024): 7.8%
 FBS: 142 mg/dL | PPBS: 198 mg/dL
 Lipid Profile (January 2024): Total Cholesterol 188 mg/dL, LDL 112 mg/dL, HDL 38 mg/dL, TG 180 mg/dL
-Creatinine: 1.1 mg/dL | eGFR: 72 mL/min/1.73m²
+Creatinine: 1.1 mg/dL | eGFR: 72 mL/min/1.73m2
 Urine Microalbumin: 42 mg/g (mildly elevated)
 
 ALLERGIES
@@ -93,467 +321,249 @@ No known drug allergies (NKDA). No food allergies reported.
 
 LIFESTYLE
 Non-smoker (quit in 2018, prior 12 pack-year history).
-Occasional alcohol — 1–2 units per week.
+Occasional alcohol - 1-2 units per week.
 Sedentary office-based profession. Walks approximately 15 minutes daily.
 
 ASSESSMENT & PLAN (March 2024)
-1. Ischaemic heart disease with reduced EF — continue current antiplatelet, beta-blocker, statin therapy. Refer for cardiac rehabilitation.
-2. Type 2 DM — poorly controlled. Considering SGLT2 inhibitor (Dapagliflozin). Dietitian referral initiated.
-3. Hypertension — suboptimally controlled. Titrating Telmisartan to 80mg. Review in 4 weeks.
-4. Dyslipidaemia — LDL target <70 mg/dL. Consider intensifying statin or adding Ezetimibe.
-5. Microalbuminuria — strict BP and glucose control. Repeat in 3 months.
+1. Ischaemic heart disease with reduced EF - continue current antiplatelet, beta-blocker, statin therapy. Refer for cardiac rehabilitation.
+2. Type 2 DM - poorly controlled. Considering SGLT2 inhibitor (Dapagliflozin). Dietitian referral initiated.
+3. Hypertension - suboptimally controlled. Titrating Telmisartan to 80mg. Review in 4 weeks.
+4. Dyslipidaemia - LDL target less than 70 mg/dL. Consider intensifying statin or adding Ezetimibe.
+5. Microalbuminuria - strict BP and glucose control. Repeat in 3 months.
 
-NEXT APPOINTMENT: 15 April 2024 — Cardiology OPD`;
+NEXT APPOINTMENT: 15 April 2024 - Cardiology OPD`;
 
-// ── TF-IDF ─────────────────────────────────────────────────────────────
-function tokenize(text) {
-  return text.toLowerCase().replace(/[^a-z0-9\s]/g, " ")
-    .split(/\s+/).filter(w => w.length > 2 && !STOPWORDS.has(w));
+const EXAMPLES=["What medications is the patient currently taking?","What is the patient's cardiac history?","Does the patient have diabetes? What are the recent blood sugar levels?","What are the latest investigation results?","What is the treatment plan?","Does the patient have any allergies?"];
+
+const COLORS=[
+  {bg:"#E8F2FC",border:"#6BAED6",text:"#1A4A7A"},
+  {bg:"#F0EBF8",border:"#9E7BC4",text:"#4A1A80"},
+  {bg:"#E8F6EE",border:"#5CB87A",text:"#1A5A30"},
+  {bg:"#FFF8E8",border:"#E8A820",text:"#6A4200"},
+  {bg:"#FDE8E8",border:"#E87070",text:"#7A1A1A"}
+];
+
+const STOP=new Set(['the','and','for','are','was','has','have','been','this','that','with','not','from','but','they','their','which','also','when','all','its','will','can','she','his','her','who','did','how','what','more','than','some','any','our','per','your','about','into','each','over','very','may','after','said','such','had','other','most','only','take','patient','history','noted']);
+
+// ── STATE ─────────────────────────────────────────────────────────────
+let chunks=[],tfStore=[],idfMap={},processed=false,lastResults=[];
+
+// ── INIT ──────────────────────────────────────────────────────────────
+window.onload=()=>{
+  // Auto-hide setup banner if served over HTTP
+  if(location.protocol==='http:'||location.protocol==='https:'){
+    document.getElementById('setupBanner').style.display='none';
+  }
+  const wrap=document.getElementById('exQs');
+  wrap.innerHTML='<span style="font-size:10px;color:var(--mu);width:100%;display:block;margin-bottom:3px">Try an example:</span>';
+  EXAMPLES.forEach(q=>{
+    const el=document.createElement('button');
+    el.className='eq-btn'; el.textContent=q;
+    el.onclick=()=>{ document.getElementById('queryInput').value=q; };
+    wrap.appendChild(el);
+  });
+};
+
+function onKeyChange(){
+  const k=document.getElementById('apiKey').value.trim();
+  const s=document.getElementById('connStatus');
+  if(!k){s.textContent='';return;}
+  if(k.startsWith('sk-ant')){s.className='ak-status ok';s.textContent='✓ Key format looks valid';}
+  else{s.className='ak-status err';s.textContent='⚠ Should start with sk-ant...';}
 }
 
-function buildTFIDF(chunkTexts) {
-  const tfs = chunkTexts.map(text => {
-    const tokens = tokenize(text);
-    const freq = {};
-    tokens.forEach(t => (freq[t] = (freq[t] || 0) + 1));
-    const total = tokens.length || 1;
-    const tf = {};
-    Object.keys(freq).forEach(t => (tf[t] = freq[t] / total));
+function loadSample(){document.getElementById('recordInput').value=SAMPLE;}
+
+function clearAll(){
+  document.getElementById('recordInput').value='';
+  chunks=[];tfStore=[];idfMap={};processed=false;lastResults=[];
+  document.getElementById('statGrid').style.display='none';
+  document.getElementById('chunksPanel').style.display='none';
+  document.getElementById('answerDiv').style.display='none';
+  document.getElementById('emptyDiv').style.display='block';
+  document.getElementById('queryInput').value='';
+  resetPipe();setPill(1);
+}
+
+// ── TOKENISE ──────────────────────────────────────────────────────────
+function tok(text){
+  return text.toLowerCase().replace(/[^a-z0-9\s]/g,' ').split(/\s+/).filter(w=>w.length>2&&!STOP.has(w));
+}
+
+// ── CHUNKING ──────────────────────────────────────────────────────────
+function processRecords(){
+  const text=document.getElementById('recordInput').value.trim();
+  if(!text){alert('Please paste some medical records first.');return;}
+  const cs=+document.getElementById('chunkSize').value;
+  const ov=+document.getElementById('overlapSize').value;
+
+  setActive('p1');
+  setTimeout(()=>{
+    setDone('p1');setActive('p2');
+    const words=text.split(/\s+/).filter(Boolean);
+    const step=Math.max(cs-ov,1);
+    chunks=[];
+    for(let i=0;i<words.length;i+=step){
+      const sl=words.slice(i,i+cs);
+      if(!sl.length)break;
+      chunks.push({id:chunks.length+1,text:sl.join(' '),tokens:sl.length});
+    }
+    setDone('p2');setActive('p3');
+    buildIndex();
+    setTimeout(()=>{
+      setDone('p3');
+      const total=chunks.reduce((s,c)=>s+c.tokens,0);
+      document.getElementById('sChunks').textContent=chunks.length;
+      document.getElementById('sTokens').textContent=total;
+      document.getElementById('sAvg').textContent=Math.round(total/chunks.length);
+      document.getElementById('statGrid').style.display='grid';
+      document.getElementById('chunksPanel').style.display='block';
+      document.getElementById('chunksCount').textContent=chunks.length+' chunks';
+      renderChunks([]);
+      processed=true;setPill(3);
+    },450);
+  },350);
+}
+
+function buildIndex(){
+  tfStore=chunks.map(c=>{
+    const tokens=tok(c.text),freq={};
+    tokens.forEach(t=>freq[t]=(freq[t]||0)+1);
+    const total=tokens.length||1,tf={};
+    Object.keys(freq).forEach(t=>tf[t]=freq[t]/total);
     return tf;
   });
-  const docFreq = {};
-  tfs.forEach(tf => Object.keys(tf).forEach(t => (docFreq[t] = (docFreq[t] || 0) + 1)));
-  const N = chunkTexts.length;
-  const idf = {};
-  Object.keys(docFreq).forEach(t => (idf[t] = Math.log((N + 1) / (docFreq[t] + 1)) + 1));
-  return { tfs, idf };
+  const df={};
+  tfStore.forEach(tf=>Object.keys(tf).forEach(t=>df[t]=(df[t]||0)+1));
+  const N=chunks.length;
+  idfMap={};
+  Object.keys(df).forEach(t=>idfMap[t]=Math.log((N+1)/(df[t]+1))+1);
 }
 
-function cosineSim(a, b) {
-  const keys = new Set([...Object.keys(a), ...Object.keys(b)]);
-  let dot = 0, na = 0, nb = 0;
-  keys.forEach(k => {
-    const av = a[k] || 0, bv = b[k] || 0;
-    dot += av * bv; na += av * av; nb += bv * bv;
-  });
-  const denom = Math.sqrt(na) * Math.sqrt(nb);
-  return denom === 0 ? 0 : dot / denom;
-}
-
-function tfidfVec(tf, idf) {
-  const v = {};
-  Object.keys(tf).forEach(t => (v[t] = tf[t] * (idf[t] || 1)));
+function tfidfVec(tf){
+  const v={};
+  Object.keys(tf).forEach(t=>v[t]=tf[t]*(idfMap[t]||1));
   return v;
 }
 
-// ── CHUNKER ────────────────────────────────────────────────────────────
-function chunkText(text, chunkSize, overlap) {
-  const words = text.trim().split(/\s+/).filter(Boolean);
-  const step = Math.max(chunkSize - overlap, 1);
-  const result = [];
-  let idx = 0;
-  while (idx < words.length) {
-    const slice = words.slice(idx, idx + chunkSize);
-    if (!slice.length) break;
-    result.push({ id: result.length + 1, text: slice.join(" "), tokens: slice.length });
-    idx += step;
-  }
-  return result;
+function cosSim(a,b){
+  const keys=new Set([...Object.keys(a),...Object.keys(b)]);
+  let dot=0,na=0,nb=0;
+  keys.forEach(k=>{const av=a[k]||0,bv=b[k]||0;dot+=av*bv;na+=av*av;nb+=bv*bv;});
+  const d=Math.sqrt(na)*Math.sqrt(nb);return d===0?0:dot/d;
 }
 
-// ── STYLES ─────────────────────────────────────────────────────────────
-const S = {
-  page: { fontFamily: "'Segoe UI', Arial, sans-serif", background: "#F0F2F5", minHeight: "100vh", color: TEXT },
-  header: { background: NAVY, padding: "0 24px", display: "flex", alignItems: "center", justifyContent: "space-between", height: 60, boxShadow: "0 2px 8px rgba(0,0,0,0.25)" },
-  heroStrip: { background: `linear-gradient(135deg, ${NAVY} 0%, ${NAVY_LIGHT} 100%)`, padding: "20px 24px 0" },
-  heroInner: { display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 16 },
-  heroText: { color: "#fff", paddingBottom: 20 },
-  stepsRow: { display: "flex", background: "rgba(255,255,255,0.1)", borderRadius: "8px 8px 0 0", overflow: "hidden", border: "1px solid rgba(255,255,255,0.15)", borderBottom: "none" },
-  stepPill: (active) => ({ padding: "8px 16px", color: active ? "#fff" : "#A8C8E8", fontSize: 12, display: "flex", alignItems: "center", gap: 6, borderRight: "1px solid rgba(255,255,255,0.1)", cursor: "default", background: active ? "rgba(255,255,255,0.15)" : "transparent" }),
-  stepNum: (active) => ({ width: 18, height: 18, borderRadius: "50%", background: active ? APOLLO_RED : "rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700, color: "#fff", flexShrink: 0 }),
-  main: { display: "grid", gridTemplateColumns: "400px 1fr", gap: 20, padding: "20px 24px 40px", maxWidth: 1280, margin: "0 auto" },
-  panel: { background: "#fff", borderRadius: 12, border: `1px solid ${BORDER}`, overflow: "hidden" },
-  panelHeader: { background: LIGHT_GRAY, borderBottom: `1px solid ${BORDER}`, padding: "12px 18px", display: "flex", alignItems: "center", justifyContent: "space-between" },
-  panelTitle: { fontSize: 11, fontWeight: 700, color: NAVY, textTransform: "uppercase", letterSpacing: "0.6px", display: "flex", alignItems: "center", gap: 7 },
-  dot: { width: 7, height: 7, borderRadius: "50%", background: APOLLO_RED },
-  panelBody: { padding: 18 },
-  textarea: { width: "100%", minHeight: 200, border: `1px solid ${BORDER}`, borderRadius: 8, padding: 12, fontFamily: "inherit", fontSize: 13, lineHeight: 1.7, color: TEXT, resize: "vertical", outline: "none", background: "#FAFBFC", boxSizing: "border-box" },
-  label: { fontSize: 11, fontWeight: 600, color: MUTED, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 4, display: "flex", justifyContent: "space-between", alignItems: "center" },
-  labelVal: { color: NAVY, fontSize: 12, fontWeight: 700 },
-  range: { width: "100%", accentColor: APOLLO_RED, cursor: "pointer" },
-  btnPrimary: { display: "inline-flex", alignItems: "center", gap: 6, padding: "9px 18px", borderRadius: 8, background: APOLLO_RED, color: "#fff", border: "none", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" },
-  btnSecondary: { display: "inline-flex", alignItems: "center", gap: 6, padding: "9px 18px", borderRadius: 8, background: LIGHT_BLUE, color: NAVY, border: `1px solid #B8D4F0`, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" },
-  btnSm: { padding: "5px 12px", fontSize: 12 },
-  statGrid: { display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginTop: 14 },
-  statCard: { background: LIGHT_GRAY, border: `1px solid ${BORDER}`, borderRadius: 8, padding: "10px 12px", textAlign: "center" },
-  statVal: { fontSize: 22, fontWeight: 700, color: NAVY },
-  statLbl: { fontSize: 10, color: MUTED, marginTop: 2, letterSpacing: "0.3px" },
-  chunkItem: (col, highlighted) => ({ background: col.bg, borderLeft: `3px solid ${col.border}`, borderRadius: 8, padding: "10px 14px", fontSize: 12, lineHeight: 1.65, marginBottom: 8, outline: highlighted ? `2px solid ${BLUE}` : "none", cursor: "default" }),
-  chunkMeta: { display: "flex", justifyContent: "space-between", marginBottom: 4, alignItems: "center" },
-  chunkId: (col) => ({ fontSize: 10, fontWeight: 700, letterSpacing: "0.5px", textTransform: "uppercase", color: col.text }),
-  chunkTokens: { fontSize: 10, color: MUTED },
-  simBarWrap: { display: "flex", alignItems: "center", gap: 8, marginTop: 5 },
-  simBarTrack: { flex: 1, height: 4, background: "rgba(0,0,0,0.1)", borderRadius: 2, overflow: "hidden" },
-  pipelineRow: { display: "flex", background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 10, overflow: "hidden", marginBottom: 18 },
-  pipeStep: (st) => ({ flex: 1, padding: "10px 6px", textAlign: "center", borderRight: `1px solid ${BORDER}`, background: st === "done" ? "#E3F5EE" : st === "active" ? LIGHT_BLUE : "transparent", color: st === "done" ? SUCCESS : st === "active" ? NAVY : MUTED, transition: "all 0.3s" }),
-  pipeStepLbl: { fontSize: 10, fontWeight: 600, letterSpacing: "0.3px", marginTop: 3 },
-  queryTextarea: { width: "100%", border: `1px solid ${BORDER}`, borderRadius: 8, padding: "10px 14px", fontFamily: "inherit", fontSize: 14, color: TEXT, outline: "none", background: "#FAFBFC", resize: "none", boxSizing: "border-box", lineHeight: 1.6 },
-  exampleQ: { background: LIGHT_BLUE, color: NAVY, border: `1px solid #B8D4F0`, borderRadius: 20, padding: "4px 12px", fontSize: 11, cursor: "pointer", display: "inline-block" },
-  answerBox: { background: "linear-gradient(135deg,#EBF5FF,#F5F0FF)", border: `1px solid #C0D8F5`, borderRadius: 10, padding: "16px 18px", marginTop: 14, borderLeft: `4px solid ${BLUE}` },
-  answerLabel: { fontSize: 10, fontWeight: 700, color: BLUE, textTransform: "uppercase", letterSpacing: "0.6px", marginBottom: 7 },
-  answerText: { fontSize: 14, lineHeight: 1.8, color: TEXT, whiteSpace: "pre-wrap" },
-  retItem: (col) => ({ background: col.bg, border: `1px solid ${col.border}`, borderRadius: 8, padding: "12px 14px", marginBottom: 8, fontSize: 13, lineHeight: 1.65 }),
-  retHeader: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 },
-  retBadge: (col) => ({ background: col.border, color: col.text, fontSize: 10, fontWeight: 700, letterSpacing: "0.5px", padding: "2px 8px", borderRadius: 4 }),
-  notice: { background: "#FFF8E1", border: "1px solid #FFE082", borderRadius: 8, padding: "9px 14px", fontSize: 12, color: "#5D4037", display: "flex", gap: 8, marginBottom: 14 },
-  emptyState: { textAlign: "center", padding: "48px 20px", color: MUTED },
-  sectionDivider: { fontSize: 11, fontWeight: 600, color: MUTED, textTransform: "uppercase", letterSpacing: "0.5px", display: "flex", alignItems: "center", gap: 8, margin: "14px 0 10px" },
-};
+function retrieve(query,k=3){
+  const tokens=tok(query),freq={};
+  tokens.forEach(t=>freq[t]=(freq[t]||0)+1);
+  const total=tokens.length||1,qTf={};
+  Object.keys(freq).forEach(t=>qTf[t]=freq[t]/total);
+  const qVec=tfidfVec(qTf);
+  return chunks.map((c,i)=>({chunk:c,sim:cosSim(qVec,tfidfVec(tfStore[i]||{}))}))
+    .sort((a,b)=>b.sim-a.sim).slice(0,k);
+}
 
-// ── MAIN COMPONENT ─────────────────────────────────────────────────────
-export default function App() {
-  const [recordText, setRecordText] = useState("");
-  const [chunkSize, setChunkSize] = useState(250);
-  const [overlap, setOverlap] = useState(30);
-  const [chunks, setChunks] = useState([]);
-  const [indexData, setIndexData] = useState(null);
-  const [highlightedIds, setHighlightedIds] = useState([]);
-  const [query, setQuery] = useState("");
-  const [answer, setAnswer] = useState("");
-  const [retrievedChunks, setRetrievedChunks] = useState([]);
-  const [step, setStep] = useState(1); // 1-4 progress
-  const [pipe, setPipe] = useState({ p1:"",p2:"",p3:"",p4:"",p5:"" });
-  const [loading, setLoading] = useState(false);
-  const [loadingMsg, setLoadingMsg] = useState("");
-  const [processed, setProcessed] = useState(false);
+// ── RENDER CHUNKS ─────────────────────────────────────────────────────
+function renderChunks(hlIds){
+  const list=document.getElementById('chunksList');
+  list.innerHTML='';
+  chunks.forEach((c,i)=>{
+    const col=COLORS[i%COLORS.length];
+    const hl=hlIds.includes(c.id);
+    const simObj=lastResults.find(r=>r.chunk.id===c.id);
+    const simPct=simObj?Math.round(simObj.sim*100):null;
+    const preview=c.text.length>220?c.text.slice(0,220)+'…':c.text;
+    const div=document.createElement('div');
+    div.className='ci'+(hl?' hl':'');
+    div.style.background=col.bg;div.style.borderColor=col.border;
+    div.innerHTML=`<div class="cm"><span class="cid" style="color:${col.text}">Chunk #${c.id}</span><span class="ctk">${c.tokens} tokens</span></div>
+<div style="color:var(--tx);opacity:.85">${esc(preview)}</div>
+${simPct!==null?`<div class="sbw"><div class="sbt"><div class="sbf" style="width:${simPct}%;background:${col.border}"></div></div><span class="sbs" style="color:${col.text}">${simPct}%</span></div>`:''}`;
+    list.appendChild(div);
+  });
+}
 
-  const setPipeState = useCallback((updates) => {
-    setPipe(prev => ({ ...prev, ...updates }));
-  }, []);
+// ── QUERY ─────────────────────────────────────────────────────────────
+async function runQuery(){
+  if(!processed){alert('Please process records first.');return;}
+  const q=document.getElementById('queryInput').value.trim();
+  if(!q){alert('Please enter a question.');return;}
+  const apiKey=document.getElementById('apiKey').value.trim();
+  if(!apiKey){alert('Please enter your Anthropic API key in the panel on the left.');return;}
 
-  const sleep = ms => new Promise(r => setTimeout(r, ms));
+  document.getElementById('answerDiv').style.display='none';
+  document.getElementById('emptyDiv').style.display='none';
+  document.getElementById('loadingDiv').style.display='block';
+  document.getElementById('askBtn').disabled=true;
+  setPill(3);setActive('p4');setMsg('Retrieving relevant chunks…');
+  await sleep(500);
 
-  const processRecords = async () => {
-    if (!recordText.trim()) return;
-    setPipe({ p1:"active",p2:"",p3:"",p4:"",p5:"" });
-    setAnswer(""); setRetrievedChunks([]); setHighlightedIds([]);
-    await sleep(350);
-    setPipe({ p1:"done",p2:"active",p3:"",p4:"",p5:"" });
-    const newChunks = chunkText(recordText, chunkSize, overlap);
-    await sleep(350);
-    setPipe({ p1:"done",p2:"done",p3:"active",p4:"",p5:"" });
-    const idx = buildTFIDF(newChunks.map(c => c.text));
-    await sleep(400);
-    setPipe({ p1:"done",p2:"done",p3:"done",p4:"",p5:"" });
-    setChunks(newChunks);
-    setIndexData(idx);
-    setProcessed(true);
-    setStep(3);
-  };
+  lastResults=retrieve(q,3);
+  renderChunks(lastResults.map(r=>r.chunk.id));
+  setDone('p4');setActive('p5');setMsg('Generating AI answer…');
 
-  const runQuery = async () => {
-    if (!processed || !query.trim()) return;
-    setLoading(true); setLoadingMsg("Retrieving relevant chunks…");
-    setAnswer(""); setRetrievedChunks([]);
-    setPipe(p => ({ ...p, p4:"active",p5:"" }));
-    setStep(3);
+  const context=lastResults.map(r=>r.chunk.text).join('\n\n---\n\n');
 
-    await sleep(500);
+  try{
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'x-api-key':apiKey,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true'
+      },
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:1000,
+        system:'You are a clinical AI assistant for Apollo Hospitals. Answer the clinician\'s question based ONLY on the provided medical record context. Be precise, clinical, and professional. If context lacks information, say so clearly. Do not hallucinate.',
+        messages:[{role:'user',content:`Medical Record Context:\n${context}\n\nClinician\'s Question: ${q}`}]
+      })
+    });
 
-    // Retrieve
-    const qTokens = tokenize(query);
-    const qFreq = {};
-    qTokens.forEach(t => (qFreq[t] = (qFreq[t]||0)+1));
-    const total = qTokens.length || 1;
-    const qTf = {};
-    Object.keys(qFreq).forEach(t => (qTf[t] = qFreq[t]/total));
-    const qVec = tfidfVec(qTf, indexData.idf);
-    const scored = chunks.map((c, i) => ({
-      chunk: c,
-      sim: cosineSim(qVec, tfidfVec(indexData.tfs[i] || {}, indexData.idf))
-    })).sort((a,b) => b.sim - a.sim).slice(0,3);
-
-    setHighlightedIds(scored.map(s => s.chunk.id));
-    setPipe(p => ({ ...p, p4:"done",p5:"active" }));
-    setLoadingMsg("Generating AI answer…");
-
-    const context = scored.map(s => s.chunk.text).join("\n\n---\n\n");
-    try {
-      const resp = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: "claude-sonnet-4-20250514",
-          max_tokens: 1000,
-          system: "You are a clinical AI assistant for Apollo Hospitals. Answer the clinician's question based ONLY on the provided medical record context. Be precise, clinical, and professional. If the context lacks sufficient information, say so clearly. Do not hallucinate.",
-          messages: [{ role: "user", content: `Medical Record Context:\n${context}\n\nClinician's Question: ${query}` }]
-        })
-      });
-      const data = await resp.json();
-      const text = (data.content || []).map(b => b.text || "").join("");
-      setAnswer(text || "No response received.");
-      setRetrievedChunks(scored);
-      setPipe(p => ({ ...p, p5:"done" }));
-      setStep(4);
-    } catch(e) {
-      setAnswer("Error: " + e.message);
+    if(!resp.ok){
+      const err=await resp.json().catch(()=>({}));
+      throw new Error(err.error?.message||`HTTP ${resp.status}`);
     }
-    setLoading(false);
-  };
 
-  const clearAll = () => {
-    setRecordText(""); setChunks([]); setIndexData(null);
-    setHighlightedIds([]); setQuery(""); setAnswer("");
-    setRetrievedChunks([]); setProcessed(false); setStep(1);
-    setPipe({ p1:"",p2:"",p3:"",p4:"",p5:"" });
-  };
+    const data=await resp.json();
+    const answer=(data.content||[]).map(b=>b.text||'').join('');
+    setDone('p5');setPill(4);
+    document.getElementById('loadingDiv').style.display='none';
+    document.getElementById('answerText').textContent=answer;
 
-  const total = chunks.reduce((s,c) => s+c.tokens, 0);
-  const pipeSteps = [
-    { key:"p1", icon:"📄", label:"Ingest" },
-    { key:"p2", icon:"✂️", label:"Chunk" },
-    { key:"p3", icon:"🔢", label:"Embed" },
-    { key:"p4", icon:"🔍", label:"Retrieve" },
-    { key:"p5", icon:"🤖", label:"Generate" },
-  ];
+    const retList=document.getElementById('retList');
+    retList.innerHTML='';
+    lastResults.forEach(r=>{
+      const col=COLORS[chunks.indexOf(r.chunk)%COLORS.length];
+      const div=document.createElement('div');
+      div.className='ri';div.style.background=col.bg;div.style.borderColor=col.border;
+      div.innerHTML=`<div class="rh"><span class="rb" style="background:${col.border};color:${col.text}">Chunk #${r.chunk.id}</span><span class="rs">Similarity: ${Math.round(r.sim*100)}% · ${r.chunk.tokens} tokens</span></div>
+<div style="color:var(--tx)">${esc(r.chunk.text.slice(0,320))}${r.chunk.text.length>320?'…':''}</div>`;
+      retList.appendChild(div);
+    });
+    document.getElementById('answerDiv').style.display='block';
 
-  return (
-    <div style={S.page}>
-      {/* HEADER */}
-      <div style={S.header}>
-        <div style={{ display:"flex", alignItems:"center", gap:12 }}>
-          <div style={{ width:38, height:38, borderRadius:"50%", background:APOLLO_RED, display:"flex", alignItems:"center", justifyContent:"center" }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
-            </svg>
-          </div>
-          <div>
-            <div style={{ fontSize:18, fontWeight:700, color:"#fff", letterSpacing:0.3 }}>Apollo MedRAG</div>
-            <div style={{ fontSize:10, color:"#A8BDD4", letterSpacing:"1px", textTransform:"uppercase" }}>AI Medical Intelligence</div>
-          </div>
-        </div>
-        <div style={{ background:"rgba(255,255,255,0.12)", border:"1px solid rgba(255,255,255,0.2)", color:"#C8DAEA", fontSize:11, padding:"4px 14px", borderRadius:20, letterSpacing:"0.5px" }}>RAG Simulator</div>
-      </div>
-
-      {/* HERO */}
-      <div style={S.heroStrip}>
-        <div style={S.heroInner}>
-          <div style={S.heroText}>
-            <h1 style={{ fontSize:22, fontWeight:700, margin:"0 0 5px" }}>Medical Record RAG Simulator</h1>
-            <p style={{ fontSize:13, color:"#A8C8E8", margin:0, maxWidth:500, lineHeight:1.6 }}>
-              Paste patient records, chunk & index them, then query using semantic similarity to retrieve relevant context for AI-generated answers.
-            </p>
-          </div>
-          <div style={S.stepsRow}>
-            {["Ingest Records","Chunk & Index","Query & Retrieve","Generate Answer"].map((lbl,i) => (
-              <div key={i} style={{ ...S.stepPill(step === i+1), borderRight: i<3?"1px solid rgba(255,255,255,0.1)":"none" }}>
-                <div style={S.stepNum(step===i+1)}>{i+1}</div>
-                <span>{lbl}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* MAIN GRID */}
-      <div style={S.main}>
-
-        {/* LEFT */}
-        <div style={{ display:"flex", flexDirection:"column", gap:18 }}>
-
-          {/* INPUT PANEL */}
-          <div style={S.panel}>
-            <div style={S.panelHeader}>
-              <div style={S.panelTitle}><div style={S.dot}/>Medical Records Input</div>
-              <button style={{ ...S.btnSecondary, ...S.btnSm }} onClick={() => setRecordText(SAMPLE)}>Load Sample</button>
-            </div>
-            <div style={S.panelBody}>
-              <div style={S.notice}>
-                <span>⚠️</span>
-                <span>Simulation only. Do not enter real patient data. Sample records are fictional.</span>
-              </div>
-              <textarea
-                style={S.textarea}
-                value={recordText}
-                onChange={e => setRecordText(e.target.value)}
-                placeholder={"Paste medical records here...\n\nExample:\nPatient: Jane Doe | DOB: 1985-07-22\nChief Complaint: Persistent headache, dizziness\nHistory: Migraine (diagnosed 2019)..."}
-              />
-
-              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16, marginTop:14 }}>
-                <div>
-                  <div style={S.label}>Chunk Size (tokens) <span style={S.labelVal}>{chunkSize}</span></div>
-                  <input type="range" style={S.range} min={100} max={500} step={25} value={chunkSize} onChange={e => setChunkSize(+e.target.value)} />
-                </div>
-                <div>
-                  <div style={S.label}>Overlap (tokens) <span style={S.labelVal}>{overlap}</span></div>
-                  <input type="range" style={S.range} min={0} max={100} step={10} value={overlap} onChange={e => setOverlap(+e.target.value)} />
-                </div>
-              </div>
-
-              <div style={{ display:"flex", gap:10, marginTop:14 }}>
-                <button style={S.btnPrimary} onClick={processRecords} disabled={!recordText.trim()}>
-                  ⚡ Process & Chunk
-                </button>
-                <button style={S.btnSecondary} onClick={clearAll}>Clear All</button>
-              </div>
-
-              {processed && (
-                <div style={S.statGrid}>
-                  <div style={S.statCard}><div style={S.statVal}>{chunks.length}</div><div style={S.statLbl}>Chunks</div></div>
-                  <div style={S.statCard}><div style={S.statVal}>{total}</div><div style={S.statLbl}>Total Tokens</div></div>
-                  <div style={S.statCard}><div style={S.statVal}>{chunks.length ? Math.round(total/chunks.length) : 0}</div><div style={S.statLbl}>Avg/Chunk</div></div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* CHUNKS PANEL */}
-          {chunks.length > 0 && (
-            <div style={S.panel}>
-              <div style={S.panelHeader}>
-                <div style={S.panelTitle}><div style={S.dot}/>Indexed Chunks</div>
-                <span style={{ fontSize:11, color:MUTED }}>{chunks.length} chunks</span>
-              </div>
-              <div style={{ ...S.panelBody, padding:14 }}>
-                <div style={{ maxHeight:340, overflowY:"auto", paddingRight:4 }}>
-                  {chunks.map((c, i) => {
-                    const col = CHUNK_COLORS[i % CHUNK_COLORS.length];
-                    const hl = highlightedIds.includes(c.id);
-                    const sim = retrievedChunks.find(r => r.chunk.id === c.id)?.sim;
-                    return (
-                      <div key={c.id} style={S.chunkItem(col, hl)}>
-                        <div style={S.chunkMeta}>
-                          <span style={S.chunkId(col)}>Chunk #{c.id}</span>
-                          <span style={S.chunkTokens}>{c.tokens} tokens</span>
-                        </div>
-                        <div style={{ fontSize:12, lineHeight:1.65, color:TEXT, opacity:0.85 }}>
-                          {c.text.slice(0,220)}{c.text.length>220?"…":""}
-                        </div>
-                        {sim !== undefined && (
-                          <div style={S.simBarWrap}>
-                            <div style={S.simBarTrack}>
-                              <div style={{ height:"100%", width:`${Math.round(sim*100)}%`, background:col.border, borderRadius:2, transition:"width 0.5s" }}/>
-                            </div>
-                            <span style={{ fontSize:10, fontWeight:700, color:col.text, minWidth:30, textAlign:"right" }}>{Math.round(sim*100)}%</span>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* RIGHT */}
-        <div style={{ display:"flex", flexDirection:"column", gap:0 }}>
-
-          {/* PIPELINE */}
-          <div style={S.pipelineRow}>
-            {pipeSteps.map((s,i) => (
-              <div key={s.key} style={{ ...S.pipeStep(pipe[s.key]), borderRight: i<4?`1px solid ${BORDER}`:"none" }}>
-                <div style={{ fontSize:18 }}>{s.icon}</div>
-                <div style={S.pipeStepLbl}>{s.label}</div>
-              </div>
-            ))}
-          </div>
-
-          {/* QUERY PANEL */}
-          <div style={S.panel}>
-            <div style={S.panelHeader}>
-              <div style={S.panelTitle}><div style={S.dot}/>Query the Records</div>
-              <span style={{ fontSize:11, color:MUTED }}>TF-IDF + Claude</span>
-            </div>
-            <div style={S.panelBody}>
-              <div style={{ display:"flex", gap:10, alignItems:"flex-start" }}>
-                <textarea
-                  style={S.queryTextarea}
-                  value={query}
-                  onChange={e => setQuery(e.target.value)}
-                  rows={2}
-                  placeholder="Ask a question about the patient's medical history…"
-                  onKeyDown={e => { if(e.key==="Enter" && !e.shiftKey){ e.preventDefault(); runQuery(); }}}
-                />
-                <button
-                  style={{ ...S.btnPrimary, flexShrink:0, alignSelf:"stretch", opacity: (!processed||loading)?0.6:1 }}
-                  onClick={runQuery}
-                  disabled={!processed || loading}
-                >
-                  🔍 Ask
-                </button>
-              </div>
-
-              <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginTop:10 }}>
-                <span style={{ fontSize:10, color:MUTED, width:"100%", marginBottom:2 }}>Try an example:</span>
-                {EXAMPLES.map((q,i) => (
-                  <span key={i} style={S.exampleQ} onClick={() => setQuery(q)}>{q}</span>
-                ))}
-              </div>
-
-              {/* LOADING */}
-              {loading && (
-                <div style={{ textAlign:"center", padding:"28px 0" }}>
-                  <div style={{ display:"flex", justifyContent:"center", gap:6, marginBottom:10 }}>
-                    {[0,1,2].map(i => (
-                      <div key={i} style={{ width:8, height:8, borderRadius:"50%", background:BLUE, animation:`bounce 1.2s ${i*0.16}s infinite ease-in-out` }}/>
-                    ))}
-                  </div>
-                  <p style={{ fontSize:13, color:MUTED }}>{loadingMsg}</p>
-                </div>
-              )}
-
-              {/* EMPTY STATE */}
-              {!loading && !answer && (
-                <div style={S.emptyState}>
-                  <div style={{ fontSize:48, marginBottom:12, opacity:0.25 }}>💬</div>
-                  <p style={{ fontSize:13 }}>{processed ? "Ask a question above to see AI-retrieved answers." : "Process records first, then ask a question."}</p>
-                </div>
-              )}
-
-              {/* ANSWER */}
-              {!loading && answer && (
-                <>
-                  <div style={S.answerBox}>
-                    <div style={S.answerLabel}>🤖 AI-Generated Answer</div>
-                    <div style={S.answerText}>{answer}</div>
-                  </div>
-
-                  {retrievedChunks.length > 0 && (
-                    <>
-                      <div style={{ ...S.sectionDivider }}>
-                        <span>Retrieved Context</span>
-                        <div style={{ flex:1, height:1, background:BORDER }}/>
-                      </div>
-                      {retrievedChunks.map((r, i) => {
-                        const col = CHUNK_COLORS[chunks.indexOf(r.chunk) % CHUNK_COLORS.length];
-                        return (
-                          <div key={i} style={S.retItem(col)}>
-                            <div style={S.retHeader}>
-                              <span style={S.retBadge(col)}>Chunk #{r.chunk.id}</span>
-                              <span style={{ fontSize:11, color:MUTED }}>Similarity: {Math.round(r.sim*100)}% · {r.chunk.tokens} tokens</span>
-                            </div>
-                            <div style={{ fontSize:12.5, lineHeight:1.65, color:TEXT }}>
-                              {r.chunk.text.slice(0,320)}{r.chunk.text.length>320?"…":""}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </>
-                  )}
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <style>{`
-        @keyframes bounce {
-          0%,80%,100%{transform:scale(0);opacity:0.4}
-          40%{transform:scale(1);opacity:1}
-        }
-      `}</style>
-    </div>
-  );
+  }catch(e){
+    document.getElementById('loadingDiv').style.display='none';
+    let msg=e.message;
+    if(msg.includes('Failed to fetch')||msg.includes('NetworkError')||msg.includes('CORS')){
+      msg='CORS error: Please serve this file via a local HTTP server.\n\nRun in your terminal:\n  python3 -m http.server 8080\n\nThen open: http://localhost:8080/apollo-rag-simulator.html';
+    }
+    document.getElementById('answerText').textContent='Error: '+msg;
+    document.getElementById('answerDiv').style.display='block';
+  }
+  document.getElementById('askBtn').disabled=false;
 }
+
+// ── PIPELINE & UTILS ──────────────────────────────────────────────────
+function resetPipe(){['p1','p2','p3','p4','p5'].forEach(id=>{const e=document.getElementById(id);e.classList.remove('active','done');})}
+function setActive(id){const e=document.getElementById(id);e.classList.add('active');e.classList.remove('done');}
+function setDone(id){const e=document.getElementById(id);e.classList.remove('active');e.classList.add('done');}
+function setPill(n){for(let i=1;i<=4;i++)document.getElementById('pill'+i).classList.toggle('active',i===n);}
+function setMsg(m){document.getElementById('loadMsg').textContent=m;}
+function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+</script>
+</body>
+</html>
